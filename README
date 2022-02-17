@@ -1,0 +1,40 @@
+
+
+To build, run `snapcraft [--destructive-mode|--use-lxd] in the this directory.
+To install, `sudo snap install lewontin-azure-iot-edge_*.snap --dangerous`
+You'll also want to run `sudo snap install docker`
+
+Then, run the following:
+
+```
+	snap set lewontin-azure-iot-edge hostname="<YOUR-HOSTNAME-HERE>"
+	snap set lewontin-azure-iot-edge provisioning.source="manual"
+	snap set lewontin-azure-iot-edge provisioning.dynamic-reprovisioning="false"
+	snap set lewontin-azure-iot-edge provisioning.device-connection-string="<DEVICE-CONNECTION-STRING>"
+
+	snap connect lewontin-azure-iot-edge:docker docker:docker-daemon
+	snap connect lewontin-azure-iot-edge:docker-executables docker:docker-executables
+	snap connect lewontin-azure-iot-edge:sockets
+
+	# Optionally, mostly for reducing log spam or to facilitate features that aren't quite working correctly yet
+	snap connect lewontin-azure-iot-edge:hostname-control
+	snap connect lewontin-azure-iot-edge:system-observe
+
+
+	snap start lewontin-azure-iot-edge
+```
+
+For daemon logs: `snap logs [-f] lewontin-azure-iot-edge
+
+For the iotedge executable: `lewontin-azure-iot-edge.iotedge <YOUR_ARGS_HERE>`
+
+***
+
+Tested only on Ubuntu Desktop 20.0
+
+TODOS:
+  - Other forms of provisioning
+  - Sane defaults for optional settings (like provisioning.dynamic-reprovisioning) so user does not need to set manually
+BROKEN:
+  - Automatic hostname detection
+

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+mkdir -p $SNAP_COMMON/var/lib/iotedge
+mkdir -p $SNAP_DATA/config
+
+. $SNAP/assemble_config.sh

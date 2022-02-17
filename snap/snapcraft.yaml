@@ -1,0 +1,79 @@
+name: lewontin-azure-iot-edge
+base: core20
+version: '0.1' # just for humans, typically '1.2+git' or '1.3.2'
+summary: Single-line elevator pitch for your amazing snap # 79 char long summary
+description: |
+  This is my-snap's description. You have a paragraph or two to tell the
+  most important story about your snap. Keep it under 100 words though,
+  we live in tweetspace and your description wants to look good in the snap
+  store.
+
+grade: devel # must be 'stable' to release into candidate/stable channels
+confinement: strict # use 'strict' once you have the right plugs and slots
+
+package-repositories:
+  - type: apt
+    architectures: [ amd64, arm64, armhf ]
+    components: [ main ]
+    suites: [ focal ]
+    formats: [ deb ]
+    key-id: BC528686B50D79E339D3721CEB3E94ADBE1229CF
+    url: https://packages.microsoft.com/ubuntu/20.04/prod
+
+
+parts:
+  iotedge:
+    plugin: nil
+    source: .
+    stage-packages:
+      - iotedge
+  config:
+    plugin: dump
+    source: ./config
+
+apps:
+  iotedged:
+    command: usr/bin/iotedged
+    daemon: simple
+    plugs:
+      - docker
+      - network-bind
+      - hostname-control
+      - system-observe
+      - sockets
+
+  iotedge:
+    command: usr/bin/iotedge
+    environment:
+      IOTEDGE_HOST: "unix:///run/iotedge-mgmt.sock"
+    plugs:
+      - network
+      - docker
+      - docker-executables
+      - system-observe
+      - sockets
+
+hooks:
+  install:
+    plugs:
+      - hostname-control
+
+plugs:
+  docker-executables:
+    interface: content
+    content: docker-executables
+    target: $SNAP/docker
+  sockets:
+    interface: system-files
+    write: [ /run/iotedge-mgmt.sock, /run/iotedge-workload.sock ]
+
+
+layout:
+  /var/lib/iotedge:
+    symlink: $SNAP_COMMON/var/lib/iotedge
+  /etc/iotedge/config.yaml:
+    symlink: $SNAP_DATA/config/config.yaml
+  /usr/bin/docker:
+    symlink: $SNAP/docker/bin/docker
+  /usr/bin/iotedged:
+    symlink: $SNAP/usr/bin/iotedged
