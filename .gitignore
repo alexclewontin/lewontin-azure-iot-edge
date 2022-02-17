@@ -1,0 +1,7 @@
+# Snapcraft directories
+parts/
+prime/
+stage/
+
+*.snap
+*.deb
