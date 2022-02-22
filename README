@@ -30,7 +30,7 @@ For the iotedge executable: `lewontin-azure-iot-edge.iotedge <YOUR_ARGS_HERE>`
 
 ***
 
-Tested only on Ubuntu Desktop 20.0
+Tested only on Ubuntu Desktop 20.04
 
 TODOS:
   - Other forms of provisioning
