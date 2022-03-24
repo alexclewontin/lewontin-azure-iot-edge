@@ -1,109 +1,96 @@
-###############################################################################
-# Provisioning mode and settings
-###############################################################################
+# ==============================================================================
+# Provisioning
+# ==============================================================================
 #
-# Configures the identity provisioning mode of the daemon.
+
+
+## Manual provisioning with connection string
 #
-# Supported modes:
-#     manual   - Using an IoT Hub connection string or
-#                an X.509 identity certificate
-#     dps      - Using DPS for provisioning
-#     external - The device has been provisioned externally.
-#                Uses an external provisioning endpoint to get device specific information.
+# [provisioning]
+# source = "manual"
+# connection_string = "HostName=example.azure-devices.net;DeviceId=my-device;SharedAccessKey=YXppb3QtaWRlbnRpdHktc2VydmljZXxhemlvdC1pZGU="
+
+
+## Manual provisioning with symmetric key
+# [provisioning]
+# source = "manual"
+# iothub_hostname = "example.azure-devices.net"
+# device_id = "my-device"
 #
-# Manual provisioning with an IoT Hub connection string (SharedAccessKey authentication only)
-#     device_connection_string - The Edge device connection string.
-#                                Eg "HostName=<hub-name>.azure-devices.net;DeviceId=<device-id>;SharedAccessKey=<key>
+# [provisioning.authentication]
+# method = "sas"
 #
-# Manual provisioning with X.509 identity certificate authentication
-#     iothub_hostname - The Azure Iot Hub hostname.
-#                       Eg <hub-name>.azure-devices.net
-#     device_id       - The Edge device ID.
-#     identity_cert   - Path of the file containing the Edge device identity certificate.
-#                       The value must be specified as a "file" URI.
-#                       Eg "file:///var/secrets/device-id.pem"
-#     identity_pk     - Path of the file containing the private key of
-#                       the Edge device identity certificate.
-#                       The value must be specified as a "file" URI.
-#                       Eg "file:///var/secrets/device-id.key.pem"
+# device_id_pk = { value = "YXppb3QtaWRlbnRpdHktc2VydmljZXxhemlvdC1pZGU=" }     # inline key (base64), or...
+# device_id_pk = { uri = "file:///var/secrets/device-id.key" }                  # file URI, or...
+# device_id_pk = { uri = "pkcs11:slot-id=0;object=device%20id?pin-value=1234" } # PKCS#11 URI
+
+
+## Manual provisioning with X.509 certificate
+# [provisioning]
+# source = "manual"
+# iothub_hostname = "example.azure-devices.net"
+# device_id = "my-device"
 #
-# DPS provisioning with TPM attestation
-#     scope_id        - The DPS instance's ID scope
-#     registration_id - The registration ID of this device in DPS.
-#                       For more information regarding DPS registration IDs,
-#                       please see https://docs.microsoft.com/en-us/azure/iot-dps/concepts-device#registration-id
+# [provisioning.authentication]
+# method = "x509"
 #
-# DPS provisioning with symmetric key attestation
-#     scope_id        - The DPS instance's ID scope
-#     registration_id - The registration ID of this device in DPS.
-#                       For more information regarding DPS registration IDs,
-#                       please see https://docs.microsoft.com/en-us/azure/iot-dps/concepts-device#registration-id
-#     symmetric_key   - The device-specific symmetric key.
+## identity key
+# identity_pk = "file:///var/secrets/device-id.key.pem"              # file URI, or...
+# identity_pk = "pkcs11:slot-id=0;object=device%20id?pin-value=1234" # PKCS#11 URI
 #
-# DPS provisioning with X.509 identity certificate attestation
-#     scope_id        - The DPS instance's ID scope
-#     registration_id - The registration ID of this device in DPS.
-#                       This value is optional. If not specified,
-#                       the common name of the identity certificate will be used
-#                       as the registration ID.
-#                       For more information regarding DPS registration IDs,
-#                       please see https://docs.microsoft.com/en-us/azure/iot-dps/concepts-device#registration-id
-#     identity_cert   - Path of the file containing the Edge device identity certificate.
-#                       The value must be specified as a "file" URI.
-#                       Eg "file:///var/secrets/device-id.pem"
-#     identity_pk     - Path of the file containing the private key of
-#                       the Edge device identity certificate.
-#                       The value must be specified as a "file" URI.
-#                       Eg "file:///var/secrets/device-id.key.pem"
+## identity certificate
+# identity_cert = "file:///var/secrets/device-id.pem"                # file URI, or...
+# [provisioning.authentication.identity_cert]                        # dynamically issued via...
+# method = "est"                                                     # - EST
+# method = "local_ca"                                                # - a local CA
+# common_name = "my-device"                                          # with the given common name, or...
+# subject = { L = "AQ", ST = "Antarctica", CN = "my-device" }        # with the given DN fields
+
+
+## DPS provisioning with symmetric key
+# [provisioning]
+# source = "dps"
+# global_endpoint = "https://global.azure-devices-provisioning.net/"
+# id_scope = "0ab1234C5D6"
 #
-# External provisioning
-#     endpoint - Required. Value of the endpoint used to retrieve device specific
-#                information such as its IoT hub connection information.
+# [provisioning.attestation]
+# method = "symmetric_key"
+# registration_id = "my-device"
 #
-# Miscellaneous settings
-#     always_reprovision_on_startup
-#                            - Optional, defaults to true.
+# symmetric_key = { value = "YXppb3QtaWRlbnRpdHktc2VydmljZXxhemlvdC1pZGVudGl0eS1zZXJ2aWNlfGF6aW90LWlkZW50aXR5LXNlcg==" } # inline key (base64), or...
+# symmetric_key = { uri = "file:///var/secrets/device-id.key" }                                                          # file URI, or...
+# symmetric_key = { uri = "pkcs11:slot-id=0;object=device%20id?pin-value=1234" }                                         # PKCS#11 URI
+
+
+## DPS provisioning with X.509 certificate
+# [provisioning]
+# source = "dps"
+# global_endpoint = "https://global.azure-devices-provisioning.net/"
+# id_scope = "0ab1234C5D6"
 #
-#                              When true, the daemon attempts to reach out to Azure
-#                              on every startup to reprovision this device and
-#                              fetch its latest provisioning state.
-#                              If the daemon is unable to reach Azure, it will attempt to
-#                              restore the backup of a previous successful reprovisioning
-#                              and use that. If this backup is also not available,
-#                              the daemon will exit and retry provisioning when it's restarted.
+# [provisioning.attestation]
+# method = "x509"
+# registration_id = "my-device"
 #
-#                              When set to false, the daemon prefers to use the provisioning backup
-#                              first, and only reaches out to Azure if the backup does not exist.
+## identity key
+# identity_pk = "file:///var/secrets/device-id.key.pem"              # file URI, or...
+# identity_pk = "pkcs11:slot-id=0;object=device%20id?pin-value=1234" # PKCS#11 URI
 #
-#                              Note that some provisioning methods like DPS with TPM attestation
-#                              are always considered to be "new" device registrations, and so will
-#                              trigger all existing modules to be stopped, removed and recreated.
-#                              If this is undesirable, consider setting this setting to false.
-#                              The downside is that if the device *is* reprovisioned in Azure,
-#                              the daemon will not notice it even if it's restarted.
-#                              Consider also setting the `dynamic_reprovisioning` setting below
-#                              to `true` to resolve this.
+## identity certificate
+# identity_cert = "file:///var/secrets/device-id.pem"                # file URI, or...
+# [provisioning.attestation.identity_cert]                           # dynamically issued via...
+# method = "est"                                                     # - EST
+# method = "local_ca"                                                # - a local CA
+# common_name = "my-device"                                          # with the given common name, or...
+# subject = { L = "AQ", ST = "Antarctica", CN = "my-device" }        # with the given DN fields
+
+
+## DPS provisioning with TPM
+# [provisioning]
+# source = "dps"
+# global_endpoint = "https://global.azure-devices-provisioning.net/"
+# id_scope = "0ab1234C5D6"
 #
-#                              This setting is only meaningful for DPS provisioning methods.
-#                              For manual provisioning, the device registration is static,
-#                              so there is no reprovisioning that would be disruptive to modules
-#                              in the way described above.
-#
-#     dynamic_reprovisioning - Optional, defaults to false.
-#
-#                              Setting this flag to true opts in to
-#                              the dynamic re-provisioning feature.
-#                              IoT Edge will detect situations where the device
-#                              appears to have been reprovisioned in the cloud
-#                              (by monitoring its own IoT Hub connection for certain errors),
-#                              and respond by shutting itself and all Edge modules down.
-#                              The next time the daemon starts up, it will attempt
-#                              to reprovision this device with Azure to receive
-#                              the new IoT Hub provisioning information.
-#
-#                              When using external provisioning, the daemon
-#                              will also notify the external provisioning endpoint
-#                              about the re-provisioning event before shutting down.
-#
-###############################################################################
-provisioning:
+# [provisioning.attestation]
+# method = "tpm"
+# registration_id = "my-device"

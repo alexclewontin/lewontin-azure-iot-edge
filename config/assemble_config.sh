@@ -3,20 +3,23 @@
 {
 	echo "# Dynamically generated configuration, do not edit!"
 
-	cat "$SNAP/config.yaml.base"
+	cat "$SNAP/etc/aziot/config.toml.template"
 
-	cat "$SNAP/fragments/homedir"
-	printf "homedir: \"%s\"\n" "$SNAP_COMMON/var/lib/iotedge"
-
-	cat "$SNAP/fragments/hostname"
-	#TODO: figure out why this isn't working as expected
-	#printf "hostname: \"%s\"\n" "$(/usr/bin/hostnamectl --static)"
-	printf "hostname: \"%s\"\n" "$(snapctl get hostname)"
-
-	cat "$SNAP/fragments/provisioning"
-	printf "  source: \"%s\"\n" "$(snapctl get provisioning.source)"
+	#cat "$SNAP/fragments/provisioning"
+	printf "[provisioning]\n"
+	printf "source = \"%s\"\n" "$(snapctl get provisioning.source)"
 	# TODO: don't print this if not set
-	printf "  device_connection_string: \"%s\"\n" "$(snapctl get provisioning.device-connection-string)"
-	printf "  dynamic_reprovisioning: %s\n" "$(snapctl get provisioning.dynamic-reprovisioning)"
+	printf "connection_string = \"%s\"\n" "$(snapctl get provisioning.connection-string)"
 
-} > $SNAP_DATA/config/config.yaml
+} > $SNAP_DATA/etc/aziot/config.toml
+
+
+# Temporary Hacks
+cp $SNAP_DATA/etc/aziot/certd/config.toml.default $SNAP_DATA/etc/aziot/certd/config.d/00-hack.toml
+cp $SNAP_DATA/etc/aziot/identityd/config.toml.default $SNAP_DATA/etc/aziot/identityd/config.d/00-hack.toml
+{
+	printf "[provisioning]\n"
+	printf "source = \"%s\"\n" "$(snapctl get provisioning.source)"
+	# TODO: don't print this if not set
+	printf "connection_string = \"%s\"\n" "$(snapctl get provisioning.connection-string)"
+} >> $SNAP_DATA/etc/aziot/identityd/config.d/00-hack.toml
