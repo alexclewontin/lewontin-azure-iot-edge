@@ -5,7 +5,6 @@
 
 	cat "$SNAP/etc/aziot/config.toml.template"
 
-	#cat "$SNAP/fragments/provisioning"
 	printf "[provisioning]\n"
 	printf "source = \"%s\"\n" "$(snapctl get provisioning.source)"
 	# TODO: don't print this if not set
