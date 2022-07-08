@@ -42,10 +42,12 @@ apps:
     daemon: simple
     plugs:
       - docker
+      - network
       - network-bind
       - hostname-control
       - system-observe
       - sockets
+      - tpm
 
   iotedge:
     command: usr/bin/iotedge
